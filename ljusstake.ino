@@ -4,6 +4,7 @@
 #define NUMBER_OF_PINS 7
 #define PIN_NEOPIXEL D6
 #define FAVICON_URL String("https://i.imgur.com/10tyXWl.png")
+#define NUMBER_OF_MODES 5
 
 #define SERVER_PORT 80
 
@@ -161,6 +162,19 @@ void mode_3() {
   modeMemoryBool = !modeMemoryBool;
 }
 
+void mode_4() {
+  // Change a single, random index to random color
+  int index;
+  // Avoid changing the same index twice in a row
+  do {
+    index = random(num_colors);
+  } while (index == modeMemoryInt);
+  modeMemoryInt = index;
+  strip.setPixelColor(index, colors[random(num_colors-1)]);
+  strip.show();
+  delay(750);
+}
+
 String responseOkHtmlHeader() {
   String response = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
   return response;
@@ -212,7 +226,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "</body></html>";
   }
   else if (request.indexOf("/?action=switch") != -1)  {
-    lightMode = (lightMode + 1) % 4;
+    lightMode = (lightMode + 1) % NUMBER_OF_MODES;
     headers = responseOkHtmlHeader();
     body = "Current mode: ";
     body += lightMode;
@@ -282,6 +296,9 @@ void loop() {
     case 3:
       mode_3();
       break;  
+    case 4:
+      mode_4();
+      break;
   }
 }
 
