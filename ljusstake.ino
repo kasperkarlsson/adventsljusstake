@@ -166,7 +166,7 @@ void mode_3() {
 }
 
 String responseOkHtmlHeader() {
-  String response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html>\r\n";
+  String response = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
   return response;
 }
 
@@ -174,63 +174,71 @@ void handleHttpRequest(WiFiClient client, String request) {
   Serial.print("Request: '");
   Serial.print(request);
   Serial.println("'");
-  String resp = "";
+  String headers, body = "";
   if (request.startsWith("GET / HTTP/1.1")) {
     // Main page
     // Headers
-    resp = responseOkHtmlHeader();
-    resp += "<html>\r\n";
-    resp += "<head>\r\n";
+    headers = responseOkHtmlHeader();
+    body = "<!DOCTYPE html>\r\n<html>\r\n";
+    body += "<head>\r\n";
     // Fancy button CSS
-    resp += "<style class='cp-pen-styles'>\r\n";
-    resp += "*{text-decoration:none;font-family:sans-serif;}\r\n";
-    resp += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
-    resp += "a:hover{background-color:lime;}</style>\r\n";
-    resp += "</head>\r\n<body>\r\n";
+    body += "<style class='cp-pen-styles'>\r\n";
+    body += "*{text-decoration:none;font-family:sans-serif;}\r\n";
+    body += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
+    body += "a:hover{background-color:lime;}</style>\r\n";
+    body += "</head>\r\n<body>\r\n";
     
-    resp += "<br />\r\n";
-    resp += "<a onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
+    body += "<br />\r\n";
+    body += "<a onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
 
-    resp += "<div id='current_mode'>";
-    resp += "Current mode: ";
-    resp += lightMode;
-    resp += "</div>\r\n";
+    body += "<div id='status'>";
+    body += "Current mode: ";
+    body += lightMode;
+    body += "</div>\r\n";
     
-    resp += "<script>\r\n";
-    resp += "function switchMode() {\r\n";
-    resp += "  var xhttp = new XMLHttpRequest();\r\n";
-    resp += "  xhttp.onreadystatechange = function() {\r\n";
-    resp += "    if (this.readyState == 4) {\r\n";
-    resp += "      document.getElementById('current_mode').innerHTML = this.responseText;\r\n";
-    resp += "    }\r\n";
-    resp += "  };\r\n";
-    resp += "  xhttp.open('GET', '/?action=switch');\r\n";
-    resp += "  xhttp.send();\r\n";
-    resp += "}\r\n";
-    resp += "</script>\r\n";
+    body += "<script>\r\n";
+    body += "function setStatusMessage(msg) {\r\n";
+    body += "  document.getElementById('status').innerHTML = msg;\r\n";
+    body += "}\r\n\r\n";
+    body += "function switchMode() {\r\n";
+    body += "  setStatusMessage('Sending...');";
+    body += "  var xhttp = new XMLHttpRequest();\r\n";
+    body += "  xhttp.onreadystatechange = function() {\r\n";
+    body += "    if (this.readyState == 4) {\r\n";
+    body += "       setStatusMessage(this.responseText);\r\n";
+    body += "    }\r\n";
+    body += "  };\r\n";
+    body += "  xhttp.open('GET', '/?action=switch');\r\n";
+    body += "  xhttp.send();\r\n";
+    body += "}\r\n";
+    body += "</script>\r\n";
     
-    resp += "</body></html>\r\n";
+    body += "</body></html>";
   }
   else if (request.indexOf("/?action=switch") != -1)  {
     lightMode = (lightMode + 1) % 4;
-    resp = responseOkHtmlHeader();
-    resp += "Current mode: ";
-    resp += lightMode;
+    headers = responseOkHtmlHeader();
+    body = "Current mode: ";
+    body += lightMode;
   }
   else if (request.indexOf("/favicon.ico") != -1) {
     // Redirect to external favicon
-    resp = "HTTP/1.1 301 Redirect\r\n";
-    resp += "Location: " + FAVICON_URL + "\r\n\r\n";
-    Serial.print("Favicon redirect: '");
-    Serial.print(resp);
-    Serial.println("'");
+    headers = "HTTP/1.1 301 Redirect\r\n";
+    headers += "Location: " + FAVICON_URL;
+    body = "";
   }
   else {
-    resp = "HTTP/1.1 404 Not found\r\n\r\n";
-    resp += "Not found";
+    headers = "HTTP/1.1 404 Not found";
+    body = "Not found";
   }
-  // Send response
-  client.print(resp);
+  // Add Content-Length header
+  headers += "\r\nContent-Length: " + (String)body.length();
+  // Send response headers
+  client.print(headers);
+  // End headers, begin body
+  client.print("\r\n\r\n");
+  // Send body
+  client.print(body);
   Serial.println("Response sent");
 }
 
