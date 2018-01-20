@@ -241,15 +241,20 @@ void loop() {
   if (client) {
     // Wait until the client sends some data
     Serial.println("Received request");
-    while(!client.available()){
-      // TODO timeout
+    long wait_start = millis();
+    while (!client.available()) {
+      // Stop waiting on timeout
+      if ((millis() - wait_start) > 500L) {
+        Serial.println("*** Stuck - timeout");
+        client.flush();
+        return;
+      }
       delay(1);
     }
    
     // Read the first line of the request
     String request = client.readStringUntil('\r');
     client.flush();
-   
     // Handle request and update lightMode if needed
     handleHttpRequest(client, request);
     
