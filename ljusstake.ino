@@ -75,13 +75,12 @@ void set_all(uint32_t color, bool show) {
 
 void mode_0() {
   // Shifting colors
-  for (int j=0; j<num_colors; j++) {
-    for (int i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, colors[(i+j) % num_colors]);
-    }
-    strip.show();
-    delay(500);
+  modeMemoryInt = (modeMemoryInt + 1) % num_colors;
+  for (int i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, colors[(i+modeMemoryInt) % num_colors]);
   }
+  strip.show();
+  delay(500);
 }
 
 void back_and_forth(uint32_t background, uint32_t foreground, int duration, int iterations) {
