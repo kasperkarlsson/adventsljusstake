@@ -1,9 +1,19 @@
 #include <Adafruit_NeoPixel.h>
-#define NUMBER_OF_PINS 10
+#include <ESP8266WiFi.h>
+#include "wifi_settings.h"
+#define NUMBER_OF_PINS 7
 #define PIN_NEOPIXEL D6
+#define FAVICON_URL String("https://i.imgur.com/10tyXWl.png")
 
+#define SERVER_PORT 80
+
+WiFiServer server(SERVER_PORT);
 
 int ledPin = LED_BUILTIN;
+int lightMode = 0;
+int modeMemoryInt = 0;
+bool modeMemoryBool = false;
+
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUMBER_OF_PINS, PIN_NEOPIXEL, NEO_RGB + NEO_KHZ800);
 
 uint32_t red = strip.Color(150, 0, 0),
@@ -25,40 +35,57 @@ void setup() {
   strip.begin();
   strip.show();
   Serial.println("Done!");
+  // Connect to WiFi
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+ 
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+ 
+  while (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(ledPin, HIGH);
+    delay(250);
+    digitalWrite(ledPin, LOW);
+    delay(250);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+ 
+  // Start HTTP server
+  server.begin();
+  Serial.println("Server started");
+ 
+  // Print IP address
+  Serial.print("Use this URL to connect: ");
+  Serial.print("http://");
+  Serial.print(WiFi.localIP());
+  Serial.println("/");
 }
 
 void set_all(uint32_t color, bool show) {
   // Sets all pixels to 'color'
-  Serial.print("set_all - color ");
-  Serial.println(color);
   for (int i=0; i<strip.numPixels(); i++) {
     strip.setPixelColor(i, color);
   }
   if (show) {
-    Serial.println("set_all - show");
     strip.show();
   }
 }
 
-void mode_1(int iterations) {
+void mode_0() {
   // Shifting colors
-  for (int iter=0; iter<iterations; iter++) {
-    for (int j=0; j<num_colors; j++) {
-      Serial.print("Color offset ");
-      Serial.println(j);
-      for (int i=0; i<strip.numPixels(); i++) {
-        strip.setPixelColor(i, colors[(i+j) % num_colors]);
-      }
-      strip.show();
-      delay(500);
+  for (int j=0; j<num_colors; j++) {
+    for (int i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, colors[(i+j) % num_colors]);
     }
+    strip.show();
+    delay(500);
   }
 }
 
 void back_and_forth(uint32_t background, uint32_t foreground, int duration, int iterations) {
   for (int iter=0; iter<iterations; iter++) {
     set_all(background, true);
-    Serial.println(strip.numPixels());
     for (int i=0; i<strip.numPixels(); i++) {
       strip.setPixelColor(i, foreground);
       strip.show();
@@ -81,16 +108,22 @@ void back_and_forth(uint32_t background, uint32_t foreground, int duration, int 
   }
 }
 
-void mode_2(int iterations) {
+void mode_1() {
   // Single pixel running back and forth
   int duration = 200;
-  for (int iter=0; iter<iterations; iter++) {
-    back_and_forth(purple, white, duration, 3);
-    back_and_forth(green, teal, duration, 2);
-    back_and_forth(blue, orange, duration, 1);
-  }
-  Serial.print("mode_2 - white 0");
-  strip.setPixelColor(0, white);
+  int col, col2;
+  // Avoid repeating the same color twice in a row
+  do {
+    col = random(num_colors);
+  } while (col == modeMemoryInt);
+  modeMemoryInt = col;
+  // Avoid getting same background and foreground color
+  do {
+    col2 = random(num_colors);
+  } while (col2 == col);
+   
+  back_and_forth(colors[col], colors[col2], duration, 1);
+  strip.setPixelColor(0, colors[col2]);
   strip.show();
   delay(duration);
 }
@@ -108,40 +141,138 @@ void set_all_wave(uint32_t color, int delay_per_pixel, bool reverse) {
   }
 }
 
-void mode_3(int iterations) {
+void mode_2() {
   // Wave
-  for (int iter=0; iter<iterations; iter++) {
-    Serial.print("mode_3 - iter ");
-    Serial.println(iter);
-    for (int col; col<=num_colors; col++) {
-      set_all_wave(colors[col], 200, false);
-    }
-  }
+  int col;
+  // Avoid repeating the same color twice in a row
+  do {
+    col = random(num_colors);
+  } while (col == modeMemoryInt);
+  modeMemoryInt = col;
+  set_all_wave(colors[col], 200, false);
 }
 
-void mode_4(int iterations) {
+void mode_3() {
   // Wave back and forth
-  for (int iter=0; iter<iterations; iter++) {
-    Serial.print("mode_4 - iter ");
-    Serial.println(iter);
-    bool flip = false;
-    for (int col; col<=num_colors; col++) {
-      flip = !flip;
-      set_all_wave(colors[col], 400, flip);
-    }
-  }
+  int col;
+  // Avoid repeating the same color twice in a row
+  do {
+    col = random(num_colors);
+  } while (col == modeMemoryInt);
+  modeMemoryInt = col;
+  set_all_wave(colors[col], 200, modeMemoryBool);
+  // Flip direction
+  modeMemoryBool = !modeMemoryBool;
 }
 
-void mode_5(int iterations) {
-  for (int iter=0; iter<iterations; iter++) {
-    
-  }
+String responseOkHtmlHeader() {
+  String response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE html>\r\n";
+  return response;
 }
+
+
+void handleHttpRequest(WiFiClient client, String request) {
+  Serial.print("Request: '");
+  Serial.print(request);
+  Serial.println("'");
+  String resp = "";
+  if (request.startsWith("GET / HTTP/1.1")) {
+    // Main page
+    // Headers
+    resp = responseOkHtmlHeader();
+    resp += "<html>\r\n";
+    resp += "<head>\r\n";
+    // Fancy button CSS
+    resp += "<style class='cp-pen-styles'>\r\n";
+    resp += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
+    resp += "a:hover{background-color:lime;}</style>\r\n";
+    resp += "</head>\r\n<body>\r\n";
+    
+    resp += "<br />\r\n";
+    resp += "<a href='#' onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
+
+    resp += "<div id='current_mode'>";
+    resp += "Current mode: ";
+    resp += lightMode;
+    resp += "</div>\r\n";
+    
+    resp += "<script>\r\n";
+    resp += "function switchMode() {\r\n";
+    resp += "  var xhttp = new XMLHttpRequest();\r\n";
+    resp += "  xhttp.onreadystatechange = function() {\r\n";
+    resp += "    if (this.readyState == 4) {\r\n";
+    resp += "      document.getElementById('current_mode').innerHTML = this.responseText;\r\n";
+    resp += "    }\r\n";
+    resp += "  };\r\n";
+    resp += "  xhttp.open('GET', '/?action=switch');\r\n";
+    resp += "  xhttp.send();\r\n";
+    resp += "}\r\n";
+    resp += "</script>";
+    
+    resp += "</body></html>\r\n";
+  }
+  else if (request.indexOf("/?action=switch") != -1)  {
+    lightMode = (lightMode + 1) % 4;
+    resp = responseOkHtmlHeader();
+    resp += "Current mode: ";
+    resp += lightMode;
+  }
+  else if (request.indexOf("/favicon.ico") != -1) {
+    // Redirect to external favicon
+    resp = "HTTP/1.1 301 Redirect\r\n";
+    resp += "Location: " + FAVICON_URL + "\r\n\r\n";
+    Serial.print("Favicon redirect: '");
+    Serial.print(resp);
+    Serial.println("'");
+  }
+  else {
+    resp = "HTTP/1.1 404 Not found\r\n\r\n";
+    resp += "Not found";
+  }
+  // Send response
+  client.print(resp);
+  Serial.println("Response sent");
+}
+
 
 void loop() {
-  mode_1(5);
-  mode_2(3);
-  mode_3(2);
-  mode_4(2);
+  // Check if a client has connected
+  WiFiClient client = server.available();
+  if (client) {
+    // Wait until the client sends some data
+    Serial.println("Received request");
+    while(!client.available()){
+      // TODO timeout
+      delay(1);
+    }
+   
+    // Read the first line of the request
+    String request = client.readStringUntil('\r');
+    client.flush();
+   
+    // Handle request and update lightMode if needed
+    handleHttpRequest(client, request);
+    
+    // TODO Needed?
+    delay(10);
+    Serial.println("Client disconnected");
+  }
+  // Display selected animation mode
+  Serial.print("Light mode: ");
+  Serial.println(lightMode);
+  switch (lightMode) {
+    case 0:
+      mode_0();
+      break;
+    case 1:
+      mode_1();
+      break;
+    case 2:
+      mode_2();
+      break;
+    case 3:
+      mode_3();
+      break;  
+  }
 }
 
