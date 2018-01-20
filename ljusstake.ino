@@ -143,13 +143,9 @@ void set_all_wave(uint32_t color, int delay_per_pixel, bool reverse) {
 
 void mode_2() {
   // Wave
-  int col;
-  // Avoid repeating the same color twice in a row
-  do {
-    col = random(num_colors);
-  } while (col == modeMemoryInt);
-  modeMemoryInt = col;
-  set_all_wave(colors[col], 200, false);
+  // Step through colors
+  modeMemoryInt = (modeMemoryInt + 1) % num_colors;
+  set_all_wave(colors[modeMemoryInt], 200, false);
 }
 
 void mode_3() {
