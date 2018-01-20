@@ -170,7 +170,6 @@ String responseOkHtmlHeader() {
   return response;
 }
 
-
 void handleHttpRequest(WiFiClient client, String request) {
   Serial.print("Request: '");
   Serial.print(request);
@@ -184,12 +183,13 @@ void handleHttpRequest(WiFiClient client, String request) {
     resp += "<head>\r\n";
     // Fancy button CSS
     resp += "<style class='cp-pen-styles'>\r\n";
+    resp += "*{text-decoration:none;font-family:sans-serif;}\r\n";
     resp += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
     resp += "a:hover{background-color:lime;}</style>\r\n";
     resp += "</head>\r\n<body>\r\n";
     
     resp += "<br />\r\n";
-    resp += "<a href='#' onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
+    resp += "<a onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
 
     resp += "<div id='current_mode'>";
     resp += "Current mode: ";
@@ -207,7 +207,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     resp += "  xhttp.open('GET', '/?action=switch');\r\n";
     resp += "  xhttp.send();\r\n";
     resp += "}\r\n";
-    resp += "</script>";
+    resp += "</script>\r\n";
     
     resp += "</body></html>\r\n";
   }
