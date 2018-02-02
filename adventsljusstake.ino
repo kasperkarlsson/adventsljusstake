@@ -256,7 +256,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     
     body += "</body></html>";
   }
-  else if (requestPath.equals("/?action=switch") != -1)  {
+  else if (requestPath.equals("/?action=switch"))  {
     lightMode = (lightMode + 1) % NUMBER_OF_MODES;
     // Reset brightness to max, in case previous mode has changed it
     strip.setBrightness(255);
@@ -264,7 +264,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body = "Current mode: ";
     body += lightMode;
   }
-  else if (requestPath.equals("/favicon.ico") != -1) {
+  else if (requestPath.equals("/favicon.ico")) {
     // Redirect to external favicon
     headers = "HTTP/1.1 301 Redirect\r\n";
     headers += "Location: " + FAVICON_URL;
