@@ -205,8 +205,18 @@ void handleHttpRequest(WiFiClient client, String request) {
   Serial.print("Request: '");
   Serial.print(request);
   Serial.println("'");
+  // Parse request method and path
+  int spaceIndexFirst = request.indexOf(" ");
+  int spaceIndexSecond = request.indexOf(" ", spaceIndexFirst + 1);
+  if (spaceIndexFirst == -1 || spaceIndexSecond == -1) {
+    Serial.println("Invalid HTTP request: could not parse method and path");
+    return;
+  }
+  String requestMethod = request.substring(0, spaceIndexFirst);
+  String requestPath = request.substring(spaceIndexFirst + 1, spaceIndexSecond);
+  // Handle request
   String headers, body = "";
-  if (request.startsWith("GET / HTTP/1.1")) {
+  if (requestPath.equals("/")) {
     // Main page
     // Headers
     headers = responseOkHtmlHeader();
@@ -246,7 +256,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     
     body += "</body></html>";
   }
-  else if (request.indexOf("/?action=switch") != -1)  {
+  else if (requestPath.equals("/?action=switch") != -1)  {
     lightMode = (lightMode + 1) % NUMBER_OF_MODES;
     // Reset brightness to max, in case previous mode has changed it
     strip.setBrightness(255);
@@ -254,7 +264,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body = "Current mode: ";
     body += lightMode;
   }
-  else if (request.indexOf("/favicon.ico") != -1) {
+  else if (requestPath.equals("/favicon.ico") != -1) {
     // Redirect to external favicon
     headers = "HTTP/1.1 301 Redirect\r\n";
     headers += "Location: " + FAVICON_URL;
