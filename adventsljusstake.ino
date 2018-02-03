@@ -273,22 +273,21 @@ void handleHttpRequest(WiFiClient client, String request) {
     headers = responseOkHtmlHeader();
     body = "<!DOCTYPE html>\r\n<html>\r\n";
     body += "<head>\r\n";
+    body += "<script src='lib.js' async></script>\r\n";
     // Fancy button CSS
     body += "<style class='cp-pen-styles'>\r\n";
     body += "*{text-decoration:none;font-family:sans-serif;}\r\n";
     body += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
     body += "a:hover{background-color:lime;}</style>\r\n";
-    body += "</head>\r\n<body>\r\n";
     
+    body += "</head>\r\n<body>\r\n";
     body += "<br />\r\n";
-    body += "<a onclick='switchMode()'>Switch mode</a><br /><br />\r\n";
+    body += "<a onclick='request(\"/api/switch\")'>Switch mode</a><br /><br />\r\n";
 
     body += "<div id='status'>";
     body += "Current mode: ";
     body += lightMode;
     body += "</div>\r\n";
-    
-    body += "<script src='lib.js' async></script>\r\n";
     
     body += "</body></html>";
   }
@@ -297,7 +296,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body = "function setStatusMessage(msg) {\r\n";
     body += "  document.getElementById('status').innerHTML = msg;\r\n";
     body += "}\r\n\r\n";
-    body += "function switchMode() {\r\n";
+    body += "function request(path) {\r\n";
     body += "  setStatusMessage('Sending...');\r\n";
     body += "  var xhttp = new XMLHttpRequest();\r\n";
     body += "  xhttp.onreadystatechange = function() {\r\n";
@@ -305,7 +304,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "       setStatusMessage(this.responseText);\r\n";
     body += "    }\r\n";
     body += "  };\r\n";
-    body += "  xhttp.open('GET', '/api/switch');\r\n";
+    body += "  xhttp.open('GET', path);\r\n";
     body += "  xhttp.send();\r\n";
     body += "}";
   }
