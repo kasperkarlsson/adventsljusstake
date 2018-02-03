@@ -277,12 +277,14 @@ void handleHttpRequest(WiFiClient client, String request) {
     // Fancy button CSS
     body += "<style class='cp-pen-styles'>\r\n";
     body += "*{text-decoration:none;font-family:sans-serif;}\r\n";
-    body += "a{border-radius:5px;background-color:green;padding:10px;color:white;text-decoration:none;font-family:sans-serif}\r\n";
+    body += "a{border-radius:5px;background-color:green;padding:10px;color:white}\r\n";
     body += "a:hover{background-color:lime;}</style>\r\n";
     
     body += "</head>\r\n<body>\r\n";
     body += "<br />\r\n";
-    body += "<a onclick='request(\"/api/switch\")'>Switch mode</a><br /><br />\r\n";
+    body += "<div id='view'>\r\n";
+    body += "<a onclick='request(\"/api/switch\")'>Switch mode</a>\r\n";
+    body += "</div><br />\r\n";
 
     body += "<div id='status'>";
     body += "Current mode: ";
