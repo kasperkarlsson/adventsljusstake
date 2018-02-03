@@ -288,12 +288,17 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += lightMode;
     body += "</div>\r\n";
     
-    body += "<script>\r\n";
-    body += "function setStatusMessage(msg) {\r\n";
+    body += "<script src='lib.js' async></script>\r\n";
+    
+    body += "</body></html>";
+  }
+  else if (requestPath.equals("/lib.js")) {
+    headers = "HTTP/1.1 200 OK\r\nContent-Type: application/javascript";
+    body = "function setStatusMessage(msg) {\r\n";
     body += "  document.getElementById('status').innerHTML = msg;\r\n";
     body += "}\r\n\r\n";
     body += "function switchMode() {\r\n";
-    body += "  setStatusMessage('Sending...');";
+    body += "  setStatusMessage('Sending...');\r\n";
     body += "  var xhttp = new XMLHttpRequest();\r\n";
     body += "  xhttp.onreadystatechange = function() {\r\n";
     body += "    if (this.readyState == 4) {\r\n";
@@ -302,10 +307,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "  };\r\n";
     body += "  xhttp.open('GET', '/api/switch');\r\n";
     body += "  xhttp.send();\r\n";
-    body += "}\r\n";
-    body += "</script>\r\n";
-    
-    body += "</body></html>";
+    body += "}";
   }
   else if (requestPath.equals("/api/switch"))  {
     lightMode = (lightMode + 1) % NUMBER_OF_MODES;
