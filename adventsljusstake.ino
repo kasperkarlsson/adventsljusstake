@@ -201,6 +201,51 @@ String responseOkHtmlHeader() {
   return response;
 }
 
+String getParamValue(String params, String getName) {
+  char c;
+  String pName = "", pValue = "";
+  bool isName = true;
+  for (int i=0; i<params.length(); i++) {
+    c = params.charAt(i);
+    if (c == '&') {
+      if (pName == getName) {
+        // Found
+        return pValue;
+      }
+      else {
+        pName = "";
+        pValue = "";
+        isName = true;
+      }
+    }
+    else if (isName && c == '=') {
+      isName = false;
+    }
+    else {
+      if (isName) {
+        pName += c;
+      }
+      else {
+        pValue += c;
+      }
+    }
+  }
+  if (pName == getName) {
+    // Found
+    return pValue;
+  }
+  return "";
+}
+
+void setColor(String color) {
+  // Sets all LEDs to color index 'color'
+  int col = color.toInt();
+  if (0 <= col && col < num_colors) {
+    set_all(colors[col], true);
+    lightMode = -1;
+  }
+}
+
 void handleHttpRequest(WiFiClient client, String request) {
   Serial.print("Request: '");
   Serial.print(request);
@@ -214,6 +259,12 @@ void handleHttpRequest(WiFiClient client, String request) {
   }
   String requestMethod = request.substring(0, spaceIndexFirst);
   String requestPath = request.substring(spaceIndexFirst + 1, spaceIndexSecond);
+  String requestParams = "";
+  int paramIndex = requestPath.indexOf("?");
+  if (paramIndex != -1) {
+    requestParams = requestPath.substring(paramIndex + 1);
+    requestPath = requestPath.substring(0, paramIndex);
+  }
   // Handle request
   String headers, body = "";
   if (requestPath.equals("/")) {
@@ -249,20 +300,24 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "       setStatusMessage(this.responseText);\r\n";
     body += "    }\r\n";
     body += "  };\r\n";
-    body += "  xhttp.open('GET', '/?action=switch');\r\n";
+    body += "  xhttp.open('GET', '/api/switch');\r\n";
     body += "  xhttp.send();\r\n";
     body += "}\r\n";
     body += "</script>\r\n";
     
     body += "</body></html>";
   }
-  else if (requestPath.equals("/?action=switch"))  {
+  else if (requestPath.equals("/api/switch"))  {
     lightMode = (lightMode + 1) % NUMBER_OF_MODES;
     // Reset brightness to max, in case previous mode has changed it
     strip.setBrightness(255);
     headers = responseOkHtmlHeader();
     body = "Current mode: ";
     body += lightMode;
+  }
+  else if (requestPath.equals("/api/setcolor")) {
+    headers = responseOkHtmlHeader();
+    setColor(getParamValue(requestParams, "color"));
   }
   else if (requestPath.equals("/favicon.ico")) {
     // Redirect to external favicon
@@ -334,6 +389,9 @@ void loop() {
       break;
     case 5:
       mode_5();
+      break;
+    default:
+      delay(200);
       break;
   }
 }
