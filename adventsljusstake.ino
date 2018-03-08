@@ -277,21 +277,29 @@ void handleHttpRequest(WiFiClient client, String request) {
     // Fancy button CSS
     body += "<style class='cp-pen-styles'>\r\n";
     body += "*{text-decoration:none;font-family:sans-serif;}\r\n";
-    body += "a{border-radius:5px;background-color:green;padding:10px;color:white}\r\n";
+    body += "a{border-radius:5px;background-color:green;padding:10px;color:white;width:200px}\r\n";
     body += "a:hover{background-color:lime;}</style>\r\n";
     
     body += "</head>\r\n<body>\r\n";
     body += "<br />\r\n";
-    body += "<div id='view'>\r\n";
-    body += "<a onclick='request(\"/api/switch\")'>Switch mode</a>\r\n";
-    body += "</div><br />\r\n";
+    body += "<center>\r\n";
+    body += "<div id='viewControl'>\r\n";
+    body += "<a onclick='switchView()' style='display:block'>Mode type</a>\r\n";
+    body += "</div>\r\n";
+    body += "<br />\r\n";
+    body += "<div id='modePicker' class='view' style='display:block'>\r\n";
+    body += "<a onclick='request(\"/api/switch\")' style='display:block'>Switch mode</a>\r\n";
+    body += "</div>\r\n";
+    body += "<div id='colorPicker' class='view' style='display:none'>\r\n";
+    body += "<a onclick='pickColor()' style='display:block'>Pick color</a>\r\n";
+    body += "</div>\r\n";
 
     body += "<div id='status'>";
     body += "Current mode: ";
     body += lightMode;
     body += "</div>\r\n";
     
-    body += "</body></html>";
+    body += "</center></body></html>";
   }
   else if (requestPath.equals("/lib.js")) {
     headers = "HTTP/1.1 200 OK\r\nContent-Type: application/javascript";
@@ -308,6 +316,22 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "  };\r\n";
     body += "  xhttp.open('GET', path);\r\n";
     body += "  xhttp.send();\r\n";
+    body += "}\r\n\r\n";
+    body += "function switchView()\r\n";
+    body += "{\r\n";
+    body += "  views = document.getElementsByClassName('view');\r\n";
+    body += "  for (i=0;i<views.length;i++) {\r\n";
+    body += "    e = views[i].style;\r\n";
+    body += "    if (e.display == 'none')\r\n";
+    body += "      e.display = 'block';\r\n";
+    body += "    else\r\n";
+    body += "      e.display = 'none';\r\n";
+    body += "  }\r\n";
+    body += "}\r\n";
+    body += "function pickColor()\r\n";
+    body += "{\r\n";
+    // TODO
+    body += "  setStatusMessage('TODO: Pick color');\r\n";
     body += "}";
   }
   else if (requestPath.equals("/api/switch"))  {
