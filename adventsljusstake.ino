@@ -196,6 +196,15 @@ void mode_5() {
   }
 }
 
+String constantHeaders() {
+  String headers = "\r\n";
+  // Clickjacking protection
+  headers += "X-Frame-Options: deny\r\n";
+  headers += "X-XSS-Protection: 1; mode=block\r\n";
+  headers += "Referrer-Policy: no-referrer\r\n";
+  return headers;
+}
+
 String responseOkHtmlHeader() {
   String response = "HTTP/1.1 200 OK\r\nContent-Type: text/html";
   return response;
@@ -356,8 +365,10 @@ void handleHttpRequest(WiFiClient client, String request) {
     headers = "HTTP/1.1 404 Not found";
     body = "Not found";
   }
+  // Add constant headers
+  headers += constantHeaders();
   // Add Content-Length header
-  headers += "\r\nContent-Length: " + (String)body.length();
+  headers += "Content-Length: " + (String)body.length();
   // Send response headers
   client.print(headers);
   // End headers, begin body
