@@ -6,7 +6,7 @@ You can switch between multiple different modes, which animate the LEDs in vario
 ## Hardware
 My implementation is based on a cheap, classical Swedish candelabrum of model "Adam", which is sold at [Clas Ohlson](https://www.clasohlson.com/se/Adventsljusstake-Adam/34-731) for 30 SEK (less than $4). Beware though - during November and December they usually increase the price to 60 SEK ~~since so many people want to build their own IoT adventsljusstake for Christmas~~.
 
-The brain of this project is a [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU) chip, but basically any Arduino-compatible ESP8266 chip should work just fine. These can typically be bought at e.g. [AliExpress](https://www.aliexpress.com/w/wholesale-nodemcu-v3-esp8266.html?CatId=400103) for less than $3.
+The brain of this project is a WeMos D1 chip, but basically any Arduino-compatible ESP8266 chip (e.g. [NodeMCU](https://en.wikipedia.org/wiki/NodeMCU)) should work just fine. WeMos D1 can be bought at [AliExpress](https://www.aliexpress.com/w/wholesale-wemos-d1-esp8266.html?CatId=400103) for less than $3.
 
 Finally, you will ned some LEDs of model WS2811. Each LED has a built-in chip which allows them to be serially connected along a data bus. You can probably find them far cheaper from China/eBay/whatever, but I bought a 25-pack (enough LEDs for three full implementations and a few extra to spare) from Swedish [Lawicel-Shop](https://www.lawicel-shop.se/tillverkare/shiji-lighting/5mm-rgb-diffused-led-ws2811-25p) for 79 SEK (less than $10).
 
@@ -15,9 +15,10 @@ Finally, you will ned some LEDs of model WS2811. Each LED has a built-in chip wh
 2. Connect the first LED to pin `D6` of the NodeMCU. Also connect the `+5V`/`V_in` pin of the LED to `3v3` on the board and `GND` to `GND`.
 3. Open up the code in the [Arduino IDE](https://www.arduino.cc/en/Main/Software)
 4. Set your WiFi credentials in `wifi_settings.h`
-5. Upload the sketch to the NodeMCU
-6. Look at the serial monitor in the IDE. The NodeMCU will print its URL once connected to the WiFi.
-7. Visit the URL from the previous step in a browser (from a computer or smartphone connected to the same LAN)
+5. Set the Board setting of the IDE to the correct value, e.g. `WeMos D1 R1`
+6. Upload the sketch to the NodeMCU
+7. Look at the serial monitor in the IDE. The NodeMCU will print its URL once connected to the WiFi.
+8. Visit the URL from the previous step in a browser (from a computer or smartphone connected to the same LAN)
 
 ## Some notes on power usage
 Yes - the 3.3V pin on the board is enough to power 5V LEDs.
