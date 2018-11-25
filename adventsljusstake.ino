@@ -305,9 +305,7 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "</div>\r\n";
 
     body += "<div id='status'>";
-    body += "Current mode: ";
-    body += lightMode;
-    body += "</div>\r\n";
+    body += "Current mode: " + String(lightMode) + "</div>\r\n";
     
     body += "</center></body></html>";
   }
