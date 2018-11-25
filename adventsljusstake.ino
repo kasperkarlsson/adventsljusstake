@@ -11,6 +11,7 @@
 WiFiServer server(SERVER_PORT);
 
 int ledPin = LED_BUILTIN;
+int xhr_timeout_ms = 4000;
 int lightMode = 0;
 int modeMemoryInt = 0;
 bool modeMemoryBool = false;
@@ -324,6 +325,8 @@ void handleHttpRequest(WiFiClient client, String request) {
     body += "    }\r\n";
     body += "  };\r\n";
     body += "  xhttp.open('GET', path);\r\n";
+    body += "  xhttp.timeout = " + String(xhr_timeout_ms) + ";\r\n";
+    body += "  xhttp.ontimeout = function () {setStatusMessage('Error: Timeout')};\r\n";
     body += "  xhttp.send();\r\n";
     body += "}\r\n\r\n";
     body += "function switchView()\r\n";
@@ -433,4 +436,3 @@ void loop() {
       break;
   }
 }
-
