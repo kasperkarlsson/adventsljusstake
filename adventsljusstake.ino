@@ -11,7 +11,7 @@
 WiFiServer server(SERVER_PORT);
 
 int ledPin = LED_BUILTIN;
-int xhr_timeout_ms = 4000;
+int xhr_timeout_ms = 5000;
 int lightMode = 0;
 int modeMemoryInt = 0;
 bool modeMemoryBool = false;
