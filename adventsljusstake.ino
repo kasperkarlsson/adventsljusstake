@@ -37,6 +37,10 @@ void setup() {
   strip.begin();
   strip.show();
   Serial.println("Done!");
+  // Set WiFi settings
+  Serial.println("Configuring WiFi");
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(false);
   // Connect to WiFi
   Serial.print("Connecting to ");
   Serial.println(WIFI_SSID);
